@@ -2,4 +2,5 @@ pyspark==3.5.1
 chispa
 pytest
 ruff
-databricks-labs-dqx
+# databricks-labs-dqx   # the data-quality framework — installed in the notebook where it's demoed,
+#                         not required for the unit/schema/DQ tests that CI runs.

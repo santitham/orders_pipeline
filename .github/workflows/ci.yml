@@ -26,9 +26,15 @@ jobs:
 
   deploy-prod:
     needs: test                       # gate: only deploy if tests pass
-    # Only the instructor repo deploys to prod; student forks run the test job only
-    # (they don't have the deploy secrets). Set this to your repo's "owner/name".
-    if: github.ref == 'refs/heads/main' && github.repository == 'santitham/orders_pipeline'
+    # Skipped by default so the build stays green. To run the real deploy demo:
+    #   1) add repo secrets DATABRICKS_HOST + DATABRICKS_TOKEN
+    #   2) set the workspace host in databricks.yml
+    #   3) add a repo VARIABLE  DEPLOY_ENABLED = true  (Settings -> Variables -> Actions)
+    # Student forks never run this (different repository, no variable).
+    if: >
+      github.ref == 'refs/heads/main' &&
+      github.repository == 'santitham/orders_pipeline' &&
+      vars.DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
