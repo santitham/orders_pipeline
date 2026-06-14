@@ -1,0 +1,15 @@
+# Python bytecode / caches — never commit these
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Virtual envs / build artifacts
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+
+# Databricks bundle build output
+.databricks/

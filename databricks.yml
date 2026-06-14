@@ -1,0 +1,38 @@
+# Databricks Asset Bundle — packages the orders pipeline (code + job) and deploys
+# it per environment. Deploy with:  databricks bundle deploy -t dev
+bundle:
+  name: orders_pipeline
+
+variables:
+  catalog:
+    description: Unity Catalog catalog to write to
+    default: ctl_training_dev
+
+# Dev = isolated sandbox (your own schema); Prod = the governed target.
+targets:
+  dev:
+    mode: development          # prefixes resources with your username, pauses schedules
+    default: true
+    workspace:
+      host: https://YOUR-WORKSPACE.cloud.databricks.com
+    variables:
+      catalog: ctl_training_dev
+
+  prod:
+    mode: production           # strict: no per-user prefixing; deployed by CI only
+    workspace:
+      host: https://YOUR-WORKSPACE.cloud.databricks.com
+    variables:
+      catalog: ctl_training_prod
+
+resources:
+  jobs:
+    orders_gold:
+      name: orders_gold-${bundle.target}
+      tasks:
+        - task_key: build_gold
+          notebook_task:
+            notebook_path: ./notebooks/build_gold.py
+            base_parameters:
+              catalog: ${var.catalog}
+          # On a real bundle, attach a job cluster or use serverless here.

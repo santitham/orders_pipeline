@@ -1,0 +1,40 @@
+name: CI
+
+# Run tests on every PR; test + deploy to prod when main moves.
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Lint
+        run: ruff check src tests
+      - name: Unit + schema + data-quality tests
+        run: pytest -q
+        env:
+          PYTHONPATH: src
+
+  deploy-prod:
+    needs: test                       # gate: only deploy if tests pass
+    # Only the instructor repo deploys to prod; student forks run the test job only
+    # (they don't have the deploy secrets). Set this to your repo's "owner/name".
+    if: github.ref == 'refs/heads/main' && github.repository == 'santitham/orders_pipeline'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+      - name: Deploy bundle to prod
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: databricks bundle deploy -t prod
